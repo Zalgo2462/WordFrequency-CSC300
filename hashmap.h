@@ -6,6 +6,7 @@ class HashMap
 {
 private:
     void resize(int newSize);
+    bool isPrime(int prime) const;
     int getNextPrime(int start) const;
     int inline probeSequence(int i) const;
 public:
@@ -15,6 +16,7 @@ public:
         valueT value;
     };
     HashMap(int initCapacity);
+    HashMap(HashMap<keyT, valueT> & copy);
     ~HashMap();
 
     valueT & operator[](keyT key) const;
