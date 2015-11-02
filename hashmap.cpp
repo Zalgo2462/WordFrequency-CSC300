@@ -56,6 +56,7 @@ void HashMap<keyT, valueT>::resize(int newSize)
             insert(oldTable[i].key, oldTable[i].value);
         }
     }
+    delete[] oldTable;
 }
 
 template<typename keyT, typename valueT>
