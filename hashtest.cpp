@@ -16,6 +16,11 @@ unsigned int stringHash(string s)
     return h;
 }
 
+unsigned int badHash(string s)
+{
+    return 0;
+}
+
 int main()
 {
     HashMap<string, int> map(1000, "", stringHash);
