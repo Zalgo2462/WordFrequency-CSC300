@@ -4,15 +4,16 @@
 using namespace std;
 
 //FNV-1a hash
-int stringHash(string s, int maxCapacity)
+//http://www.isthe.com/chongo/tech/comp/fnv/#FNV-1a
+unsigned int stringHash(string s)
 {
     unsigned int h = 2166136261;
     for (unsigned char c : s)
     {
-        h = h * 16777619;
         h = h ^ c;
+        h = h * 16777619;
     }
-    return h % maxCapacity;
+    return h;
 }
 
 int main()
@@ -20,16 +21,25 @@ int main()
     HashMap<string, int> map(1000, "", stringHash);
     string in;
     int num;
-    while (cin >> in && cin >> num)
+    while (cin >> in)
     {
-        if (map.contains(in))
+        if (in == "delete")
         {
-            map[in] += num;
+            cin >> in;
+            map.remove(in);
         }
         else
         {
-            map.insert(in, num);
+            cin >> num;
+            if (map.contains(in))
+            {
+                map[in] += num;
+            }
+            else
+            {
+                map.insert(in, num);
+            }
+            cout << in << ": " << map[in] << endl;
         }
-        cout << in << ": " << map[in] << endl;
     }
 }

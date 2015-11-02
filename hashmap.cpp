@@ -2,6 +2,7 @@
 #define _HASHMAP_H_
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
 
 template<typename keyT, typename valueT>
 class HashMap
@@ -22,10 +23,10 @@ private:
     bool isPrime(int prime) const;
     int getNextPrime(int start) const;
     int inline probeSequence(int i) const;
-    int (*hash)(keyT key, int maxSize);
+    unsigned int (*hash)(keyT key);
 
 public:
-    HashMap(int initCapacity, keyT emptyValue, int (*hash) (keyT key, int maxSize));
+    HashMap(int initCapacity, keyT emptyValue, unsigned int (* hasher) (keyT key));
     HashMap(HashMap<keyT, valueT> & copy);
     ~HashMap();
 
@@ -41,6 +42,7 @@ public:
 template<typename keyT, typename valueT>
 void HashMap<keyT, valueT>::resize(int newSize)
 {
+    std::cerr << "Resizing hashmap from " << maxSize << " to " << newSize << std::endl;
     HashMap<keyT, valueT>::MapEntry * oldTable = table;
     int oldSize = maxSize;
 
@@ -91,22 +93,22 @@ int inline HashMap<keyT, valueT>::probeSequence(int i) const
 }
 
 template<typename keyT, typename valueT>
-HashMap<keyT, valueT>::HashMap(int initMaxSize, keyT emptyValue, int (*hasher) (keyT, int))
+HashMap<keyT, valueT>::HashMap(int initMaxSize, keyT emptyValue, unsigned int (*hasher) (keyT))
 {
+    hash = hasher;
     empty = emptyValue;
     currentSize = 0;
     maxSize = getNextPrime(initMaxSize);
     table = new HashMap<keyT, valueT>::MapEntry[maxSize];
-    hash = hasher;
 }
 
 template<typename keyT, typename valueT>
 HashMap<keyT, valueT>::HashMap(HashMap<keyT, valueT> & copy)
 {
+    hash = copy.hash;
     empty = copy.empty;
     currentSize = copy.currentSize;
     maxSize = copy.maxSize;
-    hash = copy.hash;
     table = new HashMap<keyT, valueT>::MapEntry[maxSize];
     for (int i = 0; i < copy.maxSize; i++)
     {
@@ -123,17 +125,26 @@ HashMap<keyT, valueT>::~HashMap()
 template<typename keyT, typename valueT>
 valueT & HashMap<keyT, valueT>::operator[](keyT key) const
 {
-    int h = hash(key, maxSize);
+    int h = hash(key) % maxSize;
+    std::cerr << "[Dereference] Hashing " << key << " to " << h << std::endl;
+
     int i = 0;
     int index = (h + probeSequence(i)) % maxSize;
     for (;
         table[index].key != key && table[index].key != empty;
         index = (h + probeSequence(++i)) % maxSize)
-    { }
+    {
+        std::cerr << "Did not find " << key << " at: " << index << std::endl;
+    }
+    if (table[index].deleted)
+    {
+        throw std::invalid_argument("Key has been deleted");
+    }
     if (table[index].key == empty)
     {
         throw std::invalid_argument("Key not found in hashmap");
     }
+    std::cerr << "Found " << key << " at: " << index << std::endl;
     return table[index].value;
 }
 
@@ -142,16 +153,22 @@ void HashMap<keyT, valueT>::insert(keyT key, valueT value)
 {
     if (currentSize >= 0.75 * maxSize)
     {
-            resize(getNextPrime(2 * maxSize));
+        int newSize = getNextPrime(2 * maxSize);
+        resize(newSize);
     }
-    int h = hash(key, maxSize);
+    int h = hash(key) % maxSize;
+    std::cerr << "[Insert] Hashing " << key << " to " << h << std::endl;
+
     int i = 0;
     int index = (h + probeSequence(i)) % maxSize;
     //Don't have to handle full case since we are rehashing
     for (;
         table[index].key != empty && !table[index].deleted;
         index = (h + probeSequence(++i)) % maxSize)
-    { }
+    {
+        std::cerr << "Failed insertion at: " << index << std::endl;
+    }
+    std::cerr << "Inserted " << key << " in " << index << std::endl;
     table[index].key = key;
     table[index].value = value;
     table[index].deleted = false;
@@ -161,42 +178,53 @@ void HashMap<keyT, valueT>::insert(keyT key, valueT value)
 template<typename keyT, typename valueT>
 bool HashMap<keyT, valueT>::remove(keyT key)
 {
-    int hash = hash(key, maxSize);
-    int i = 0;
-    int index = (hash + probeSequence(i)) % maxSize;
+    int h = hash(key) % maxSize;
+    std::cerr << "[Remove] Hashing " << key << " to " << h << std::endl;
 
-    for (;
-        table[index].key != key && table[index].key != empty;
-        index = (hash + probeSequence(++i)) % maxSize)
-    { }
-
-    if (table[index].key == empty)
-    {
-        return false;
-    }
-
-    currentSize--;
-    table[index].deleted = true;
-    return true;
-}
-
-template<typename keyT, typename valueT>
-bool HashMap<keyT, valueT>::contains(keyT key) const
-{
-    int h = hash(key, maxSize);
     int i = 0;
     int index = (h + probeSequence(i)) % maxSize;
 
     for (;
         table[index].key != key && table[index].key != empty;
         index = (h + probeSequence(++i)) % maxSize)
-    { }
+    {
+        std::cerr << "Did not find " << key << " at: " << index << std::endl;
+    }
 
     if (table[index].key == empty)
     {
         return false;
     }
+    currentSize--;
+    table[index].deleted = true;
+    std::cerr << "Removed " << key << " at: " << index << std::endl;
+    return true;
+}
 
+template<typename keyT, typename valueT>
+bool HashMap<keyT, valueT>::contains(keyT key) const
+{
+    int h = hash(key) % maxSize;
+    std::cerr << "[Contains] Hashing " << key << " to " << h << std::endl;
+
+    int i = 0;
+    int index = (h + probeSequence(i)) % maxSize;
+
+    for (;
+        table[index].key != key && table[index].key != empty;
+        index = (h + probeSequence(++i)) % maxSize)
+    {
+        std::cerr << "Did not find " << key << " at: " << index << std::endl;
+    }
+    if (table[index].deleted)
+    {
+        return false;
+    }
+    if (table[index].key == empty)
+    {
+        return false;
+    }
+    std::cerr << "Found " << key << " at: " << index << std::endl;
     return true;
 }
 
