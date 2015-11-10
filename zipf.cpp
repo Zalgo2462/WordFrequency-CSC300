@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+
 #include "tokenize.h"
 #include "hashmap.cpp"
-
 using namespace std;
 
 void printWrd(HashMap<string, int>::MapEntry * sorted, int numEntries);
@@ -13,6 +13,8 @@ void printCsv(HashMap<string, int>::MapEntry * sorted, int numEntries);
 void sort(HashMap<string, int>::MapEntry * unsorted);
 int qsorter(const void * a, const void * b);
 unsigned int stringHash(string s);
+
+const char* VALID = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'";
 
 int main(int argc, char ** argv)
 {
@@ -37,22 +39,17 @@ int main(int argc, char ** argv)
  
     while ( !input.eof() )
     {
-        do
+        getline( input, in );
+        tokenize( in, token, VALID );
+        for ( int i = 0; i < token.size(); i++ )
         {
-            getline( input, in );
-            tokenize( in, token, VALID );
-            for ( int i = 0; i < token.size(); i++ )
-            {
-                totalWords++;
-                if( map.contains(token[i]) )
-                    map[token[i]] += 1;
-                else
-                    map.insert( token[i], 1 );
-            }
-        }while( in != "\n" );
- 
-        //insert function handles when near full and auto resizes
-           
+            totalWords++;
+            if( map.contains(token[i]) )
+                map[token[i]] += 1;
+            else
+                map.insert( token[i], 1 );
+        }
+        //insert function handles when near full and auto resizes  
     }
     
     cout << "Final table size is " << map.capacity() << '.' << endl
