@@ -1,5 +1,5 @@
 /*
-Authors: John Weiss Ph.D., Logan Lembke
+Authors: John Weiss Ph.D., Logan Lembke, Brady Shimp
 */
 #ifndef _TOKENIZE_H_
 #define _TOKENIZE_H_
@@ -7,10 +7,8 @@ Authors: John Weiss Ph.D., Logan Lembke
 #include <vector>
 #include <iostream>
 
-const char* DELIMITERS = " ,.*!";
-const char* VALID = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const char* VALID = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'";
 
-void tokenize1( const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters = " " );
-void tokenize2( const std::string& str, std::vector<std::string>& tokens, const std::string& valid = " " );
+void tokenize( const std::string& str, std::vector<std::string>& tokens, const std::string& valid = " " );
 
 #endif
