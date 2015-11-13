@@ -23,8 +23,8 @@ int main(int argc, char ** argv)
         cerr << "Usage: ./zipf filename" << endl;
         exit(1);
     }
-    ifstream input( argv[1] );
-    if(!input)
+    ifstream file( argv[1], ios::in );
+    if(!file)
     {
         cerr << "ERROR: Could not open " << argv[1] << endl;
         exit(1);
@@ -35,20 +35,24 @@ int main(int argc, char ** argv)
     HashMap<string, int> map( 1000, "", stringHash );
     string in;
     vector<string> token;
-    int totalWords = 0;
+    int totalWords = 0, pos = 0;
  
-    while ( !input.eof() )
+    while ( getline( file, in ) )
     {
-        getline( input, in );
         tokenize( in, token, VALID );
+        
         for ( int i = 0; i < token.size(); i++ )
         {
-            totalWords++;
-            if( map.contains(token[i]) )
-                map[token[i]] += 1;
-            else
-                map.insert( token[i], 1 );
+            if( token[i] != " " )
+            {
+                if( map.contains(token[i]) )
+                    map[token[i]] += 1;
+                else
+                    map.insert( token[i], 1 );
+                totalWords += 1;
+            }
         }
+        token.clear();
         //insert function handles when near full and auto resizes  
     }
     
@@ -67,7 +71,7 @@ int main(int argc, char ** argv)
     //write output to .csv file
     
     //possibly use <chronos> for clocking?
-    
+    file.close();
     return 0;
 }
 
@@ -104,5 +108,5 @@ void sort(HashMap<string, int>::MapEntry * unsorted)
 int qsorter(const void * a, const void * b)
 {
 
-
+    return 0;
 }

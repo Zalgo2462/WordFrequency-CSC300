@@ -12,11 +12,8 @@ LINK = g++
 
 # Preprocessor and compiler flags (turn on warnings, optimization and debugging):
 # CPPFLAGS = <preprocessor flags go here>
-CFLAGS = -Wall -O -g -std=c++0x
-CXXFLAGS = $(CFLAGS)
-
-# OpenGL/GLUT libraries for Linux:
-GL_LIBS = -lglut -lGLU -lGL -lm
+CFLAGS = -Wall -O -g -std=c++0x 
+CXXFLAGS = $(CFLAGS) 
 
 #-----------------------------------------------------------------------
 # Specific targets:
@@ -27,8 +24,8 @@ GL_LIBS = -lglut -lGLU -lGL -lm
 all:	zipf
 
 # zipf program
-zipf:	zipf.o hashmap.o tokenize.o
-	$(LINK) -o $@ $^ $(GL_LIBS)
+zipf:	zipf.o hashmap.o tokenize.o 
+	$(LINK) -o $@ $^ 
 
 clean:
 	rm -f *.o *~ zipf

@@ -44,5 +44,9 @@ void tokenize( const string& str, vector<string>& tokens, const string& valid)
         //remove apostrophes from ends of words
         if (tokens[i].back() == '\'' )
             tokens[i].erase(tokens[i].end()-1);
+            
+       for (int j = 0; j < tokens[i].size(); j++ )
+            tokens[i][j] = tolower(tokens[i][j]);
+
     }
 }
