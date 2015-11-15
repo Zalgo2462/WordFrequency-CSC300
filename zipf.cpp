@@ -9,8 +9,8 @@
 #include "hashmap.cpp"
 using namespace std;
 
-void printWrd(HashMap<string, int>::MapEntry * arr, int size);
-void printCsv(HashMap<string, int>::MapEntry * arr, int size);
+void printWrd(HashMap<string, int>::MapEntry * arr, int size, string name, int total);
+void printCsv(HashMap<string, int>::MapEntry * arr, int size, string name, int total);
 int moveNulls(HashMap<string, int>::MapEntry * arr, int size);
 int qsorter(const void * a, const void * b);
 unsigned int stringHash(string s);
@@ -34,11 +34,12 @@ int main(int argc, char ** argv)
     //create hashmap initial size 1000
     //constructor auto increases the value to a prime number
     HashMap<string, int> map( 1000, "", stringHash );
-    string in;
+    string in, fileName = argv[1];
     vector<string> token;
-    int totalWords = 0, shrink = 0, i;
+    int totalWords = 0, shrink = 0;
     HashMap<string, int>::MapEntry *arr;
-
+    
+    
     while ( getline( file, in ) )
     {
         tokenize( in, token, VALID );
@@ -80,17 +81,11 @@ int main(int argc, char ** argv)
     qsort( arr, shrink, sizeof(HashMap<string, int>::MapEntry), qsorter);
     cout << " ... Done." << endl;
 
-    //write output to .wrd file
-    //write output to .csv file
+    fileName.replace(fileName.end()-3, fileName.end(), "wrd" );
+    printWrd( arr, shrink, fileName, totalWords );
+    fileName.replace(fileName.end()-3, fileName.end(), "csv" );
+    printCsv( arr, shrink, fileName, totalWords );
 
-    //output to see how well it actually sorted
-    //prints word frequency and array position
-    i = 0;
-    while ( arr[i].value != 0 )
-    {
-        cout << arr[i].value << "\tarr[" << i << ']' << "\t" << arr[i].key << endl;
-        i++;
-    }
     //possibly use <chronos> for clocking?
     file.close();
     return 0;
@@ -110,15 +105,81 @@ unsigned int stringHash(string s)
     return h;
 }
 
-void printWrd(HashMap<string, int>::MapEntry * arr, int size)
+void printWrd(HashMap<string, int>::MapEntry * arr, int size, string name, int total)
 {
-    //traverse sorted
+    ofstream file(name);
+    int i = 0, j, t, x, start, end;
+    float avg = 0.0;
+    if( !file )
+    {
+        cout << "Error writing .wrd file" << endl;
+        exit (1);
+    }
+    name.replace(name.end()-3, name.end(), "txt" );
+    
+    file << "\nZipf's Law"<< endl
+         << "----------" << endl
+         << "File: " << name << endl
+         << "Total Words: " << total << endl
+         << "Total Unique Words: " << size << endl << endl
+         << "Word Frequencies\t\t\t\t\t\tRanks\tAvg Rank" << endl
+         << "----------------\t\t\t\t\t\t-----\t--------";
+         
+
+    while ( arr[i].value != 0 )
+   {
+        file << endl << endl;
+        x = arr[i].value;
+        j = 0;
+        do
+        {
+            i++;
+            j++;
+        }while( x == arr[i].value );
+        i = i - j;
+        start = i + 1;
+        end = start + j - 1;
+        avg = (start + end) / (j + 1);
+        if( x != 1 )
+            file << "Words occurring "<< x << " times:\t\t\t\t\t" << start << "\t\t" << avg;
+        if( x == 1 )
+            file << "Words occurring once:\t\t\t\t\t\t" << i + 1 << "\t\t" << (i + j) / j;
+        
+        t = 0;
+        file << endl;
+        j = j + (i - 1);
+        while( i <= j )
+        {
+            file << arr[i].key << "\t";
+            t++;
+            if( t % 4 == 0 )
+                file << endl;
+            i++;
+        }
+        j = j - (i - 1);
+        i = i + j;
+    }
+    file.close();
 }
 
 
-void printCsv(HashMap<string, int>::MapEntry * arr, int size)
+void printCsv(HashMap<string, int>::MapEntry * arr, int size, string name, int total)
 {
-    //traverse sorted
+    ofstream file(name);
+    int i = 0;
+    
+    if( !file )
+    {
+        cout << "Error writing .csv file" << endl;
+        exit (1);
+    }
+
+    while ( arr[i].value != 0 )
+    {
+        //cout << arr[i].value << "\tarr[" << i << ']' << "\t" << arr[i].key << endl;
+        i++;
+    }
+    file.close();
 }
 
 int moveNulls(HashMap<string, int>::MapEntry * arr, int size)
