@@ -22,9 +22,9 @@ using namespace std;
 void tokenize( const string& str, vector<string>& tokens, const string& valid)
 {
     // skip delimiters to start of first token
-    int tokenStart = str.find_first_of( valid, 0 );
+    size_t tokenStart = str.find_first_of( valid, 0 );
     // find next delimiter (i.e., end of first token)
-    int tokenEnd = str.find_first_not_of( valid, tokenStart );
+    size_t tokenEnd = str.find_first_not_of( valid, tokenStart );
 
     // loop through input string
     while ( tokenStart != string::npos )
@@ -36,17 +36,30 @@ void tokenize( const string& str, vector<string>& tokens, const string& valid)
         // find next delimiter (end of token)
         tokenEnd = str.find_first_not_of( valid, tokenStart );
     }
-    for ( int i = 0; i < tokens.size(); i++ )
+
+}
+
+void processTokens( vector<string> & tokens )
+{
+    size_t size = tokens.size();
+    for ( size_t i = 0; i < tokens.size(); i++ )
     {
-        //remove apostrophes from beginnings of words 
+
+        for ( size_t j = 0; j < tokens[i].size(); j++ )
+            tokens[i][j] = tolower(tokens[i][j]);
+
+        //remove apostrophes from beginnings of words
         if ( tokens[i].front() == '\'' )
             tokens[i].erase(tokens[i].begin());
         //remove apostrophes from ends of words
         if (tokens[i].back() == '\'' )
             tokens[i].erase(tokens[i].end()-1);
-            
-       for (int j = 0; j < tokens[i].size(); j++ )
-            tokens[i][j] = tolower(tokens[i][j]);
 
+        if (tokens[i].size() == 0)
+        {
+            tokens.erase(tokens.begin() + i);
+            size--;
+            i--;
+        }
     }
 }

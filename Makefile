@@ -12,8 +12,8 @@ LINK = g++
 
 # Preprocessor and compiler flags (turn on warnings, optimization and debugging):
 # CPPFLAGS = <preprocessor flags go here>
-CFLAGS = -Wall -O -g -std=c++0x 
-CXXFLAGS = $(CFLAGS) 
+CFLAGS = -Wall -O -g -std=c++0x
+CXXFLAGS = $(CFLAGS)
 
 #-----------------------------------------------------------------------
 # Specific targets:
@@ -24,8 +24,8 @@ CXXFLAGS = $(CFLAGS)
 all:	zipf
 
 # zipf program
-zipf:	zipf.o hashmap.o tokenize.o 
-	$(LINK) -o $@ $^ 
+zipf:	zipf.o hashmap.o tokenize.o
+	$(LINK) -o $@ $^
 
 clean:
-	rm -f *.o *~ zipf
+	rm -f *.o *~

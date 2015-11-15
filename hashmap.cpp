@@ -45,7 +45,8 @@ void HashMap<keyT, valueT>::resize(int newSize)
 //    std::cerr << "Resizing hashmap from " << maxSize << " to " << newSize << std::endl;
     HashMap<keyT, valueT>::MapEntry * oldTable = table;
     int oldSize = maxSize;
-
+    currentSize = 0;
+    
     table = new HashMap<keyT, valueT>::MapEntry[newSize];
     maxSize = newSize;
 

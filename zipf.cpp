@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <cstring>
 #include <algorithm>
 #include "tokenize.h"
 #include "hashmap.cpp"
@@ -11,8 +12,7 @@ using namespace std;
 void printWrd(HashMap<string, int>::MapEntry * arr, int size);
 void printCsv(HashMap<string, int>::MapEntry * arr, int size);
 int moveNulls(HashMap<string, int>::MapEntry * arr, int size);
-void sort(HashMap<string, int>::MapEntry *& arr, int start, int end);
-int qsorter(HashMap<string, int>::MapEntry *& arr, int start, int end);
+int qsorter(const void * a, const void * b);
 unsigned int stringHash(string s);
 
 const char* VALID = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'";
@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
         cerr << "ERROR: Could not open " << argv[1] << endl;
         exit(1);
     }
-    
+
     //create hashmap initial size 1000
     //constructor auto increases the value to a prime number
     HashMap<string, int> map( 1000, "", stringHash );
@@ -38,12 +38,14 @@ int main(int argc, char ** argv)
     vector<string> token;
     int totalWords = 0, shrink = 0, i;
     HashMap<string, int>::MapEntry *arr;
- 
+
     while ( getline( file, in ) )
     {
         tokenize( in, token, VALID );
-        
-        for ( int i = 0; i < token.size(); i++ )
+        //move to lower and quote handling here
+        processTokens(token);
+
+        for ( size_t i = 0; i < token.size(); i++ )
         {
             if( map.contains(token[i]) )
                 map[token[i]] += 1;
@@ -51,35 +53,42 @@ int main(int argc, char ** argv)
                 map.insert( token[i], 1 );
             totalWords += 1;
         }
+
         token.clear();
-        //insert function handles when near full and auto resizes  
+        //insert function handles when near full and auto resizes
     }
-    
+
     //say words
     cout << "Final table size is " << map.capacity() << '.' << endl
     << "Read a total of " << totalWords << " from " << argv[1] << '.' << endl
     << "Inserted " << map.size() << " unique words into the table." << endl
     << "Sorting Table ...";
-    
+
     //allocate array
     arr = new  HashMap<string, int>::MapEntry [map.capacity()];
-    //set equal to table entries
-    arr = map.getEntries();
+
+    //copy values into new array
+    for (int i = 0; i < map.capacity(); i++)
+    {
+	       arr[i] = map.getEntries()[i];
+    }
+
     //move empty spots to back and get good size value
     shrink = moveNulls(arr, map.capacity() );
+
     //sort that bish
-    sort( arr, 0, shrink );
+    qsort( arr, shrink, sizeof(HashMap<string, int>::MapEntry), qsorter);
     cout << " ... Done." << endl;
 
     //write output to .wrd file
     //write output to .csv file
-    
+
     //output to see how well it actually sorted
     //prints word frequency and array position
     i = 0;
     while ( arr[i].value != 0 )
     {
-        cout << arr[i].value << "\tarr[" << i << ']' << endl;
+        cout << arr[i].value << "\tarr[" << i << ']' << "\t" << arr[i].key << endl;
         i++;
     }
     //possibly use <chronos> for clocking?
@@ -128,47 +137,25 @@ int moveNulls(HashMap<string, int>::MapEntry * arr, int size)
         }
     }
     //traverse valid list items for good size
-    i = 0; 
+    //get size of contiguous good values
+    i = 0;
     while ( arr[i].value != 0 )
         i++;
-    //minus one for off by one array size
-    return i - 1;
+
+    //undo last addition to i so it is the number of elements
+    return i;
 }
 
-void sort(HashMap<string, int>::MapEntry *& arr, int start, int end)
+int qsorter(const void * a, const void * b)
 {
-    int middle;
-    if ( start < end )
-    {   //find middle point of current array section
-        middle = qsorter(arr, start, end);
-        //sort the front part
-        sort( arr, start, middle );
-        //sort the back part
-        sort( arr, middle + 1, end );
-    }
-    //return
-    return;
-}
+    HashMap<string, int>::MapEntry first = *(HashMap<string, int>::MapEntry *) a;
+    HashMap<string, int>::MapEntry second = *(HashMap<string, int>::MapEntry *) b;
 
-int qsorter(HashMap<string, int>::MapEntry *& arr, int start, int end)
-{
-    int x = arr[end].value;
-    int i = end - 1, j = start + 1;
-
-    //and something about a pivot point, that's probably why it doesn't work    
-    do
+    //return positive if out order
+    int value = second.value - first.value;
+    if (value == 0)
     {
-        do{
-            j--;
-        }while ( x > arr[j].value );
-        do{
-            i++;
-        }while ( x < arr[i].value );
-        if ( i < j )
-           swap( arr[i], arr[j] );
-    }while (i <= j );
-
-    return j;
-    //return i - 1 gives same output
+	       return strcmp(first.key.c_str(), second.key.c_str());
+    }
+    return value;
 }
-
