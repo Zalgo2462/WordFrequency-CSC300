@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <iomanip>
 #include <cstring>
 #include <algorithm>
 #include "tokenize.h"
@@ -108,7 +109,7 @@ unsigned int stringHash(string s)
 void printWrd(HashMap<string, int>::MapEntry * arr, int size, string name, int total)
 {
     ofstream file(name);
-    int i = 0, j, t, x, start, end;
+    int i = 0, j, t, x, start, end, num;
     float avg = 0.0;
     if( !file )
     {
@@ -122,13 +123,14 @@ void printWrd(HashMap<string, int>::MapEntry * arr, int size, string name, int t
          << "File: " << name << endl
          << "Total Words: " << total << endl
          << "Total Unique Words: " << size << endl << endl
-         << "Word Frequencies\t\t\t\t\t\tRanks\tAvg Rank" << endl
-         << "----------------\t\t\t\t\t\t-----\t--------";
+         << "Word Frequencies" << setw(20) << "Ranks" << setw(10) << "Avg Rank" << endl
+         << "----------------" << setw(20) << "-----" << setw(10) << "--------";
          
-
+    file.precision(1);
+    file<<fixed;
     while ( arr[i].value != 0 )
    {
-        file << endl << endl;
+        file << endl << endl << endl;
         x = arr[i].value;
         j = 0;
         do
@@ -139,21 +141,53 @@ void printWrd(HashMap<string, int>::MapEntry * arr, int size, string name, int t
         i = i - j;
         start = i + 1;
         end = start + j - 1;
-        avg = (start + end) / (j + 1);
         if( x != 1 )
-            file << "Words occurring "<< x << " times:\t\t\t\t\t" << start << "\t\t" << avg;
+        {
+            if( start == end )  //only show start position for rank
+                file << "Words occurring "<< x << " times:"<< setw(8) << start << setw(10) << start << ".0";
+            else
+            {
+                num = start;
+                while( end - num > 0 )
+                {
+                    start = i + 1 + (start + end - num );
+                    num++;
+                }
+                num = start;
+                start = i + 1;
+                avg = float(num) / ( end - start + 1 );
+                        // start position -> end position for rank
+                file << "Words occurring "<< x << " times:" << setw(8) << start << '-' << end << setw(10) << avg;
+            }
+        }
         if( x == 1 )
-            file << "Words occurring once:\t\t\t\t\t\t" << i + 1 << "\t\t" << (i + j) / j;
-        
+        {
+            if( start == end )
+                file << "Words occurring once:" << setw(8) << start << setw(10) << start << ".0";
+            else
+            {
+                num = start;
+                while( end - num > 0 )
+                {
+                    start = i + 1 + (start + end - num );
+                    num++;
+                }
+                num = start;
+                start = i + 1;
+                avg = float(num) / ( end - start + 1 );
+                file << "Words occurring once:" << setw(8) << start << '-' << end << setw(10) << avg;
+            }
+        }
         t = 0;
-        file << endl;
+        file << endl << setfill('-') << setw(60) << "" << endl;
         j = j + (i - 1);
         while( i <= j )
-        {
-            file << arr[i].key << "\t";
+        {   // 7 spaces between words for more readability
+            file << arr[i].key << setw( 19 - arr[i].key.size() ) << setfill(' ') << ' '; 
             t++;
-            if( t % 4 == 0 )
-                file << endl;
+            // 4 words per line so long as there are more words to output
+            if( t % 4 == 0 && i != j )
+                file << endl << setw(0);
             i++;
         }
         j = j - (i - 1);

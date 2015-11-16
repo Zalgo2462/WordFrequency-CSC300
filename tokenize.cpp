@@ -44,17 +44,20 @@ void processTokens( vector<string> & tokens )
     size_t size = tokens.size();
     for ( size_t i = 0; i < tokens.size(); i++ )
     {
-
         for ( size_t j = 0; j < tokens[i].size(); j++ )
             tokens[i][j] = tolower(tokens[i][j]);
 
         //remove apostrophes from beginnings of words
-        if ( tokens[i].front() == '\'' )
+        while( tokens[i].front() == '\'' )
+        {   
             tokens[i].erase(tokens[i].begin());
+        }
         //remove apostrophes from ends of words
-        if (tokens[i].back() == '\'' )
+        while( tokens[i].back() == '\'' )
+        {
             tokens[i].erase(tokens[i].end()-1);
-
+        }
+        
         if (tokens[i].size() == 0)
         {
             tokens.erase(tokens.begin() + i);
