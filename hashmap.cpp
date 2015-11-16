@@ -42,7 +42,7 @@ public:
 template<typename keyT, typename valueT>
 void HashMap<keyT, valueT>::resize(int newSize)
 {
-//    std::cerr << "Resizing hashmap from " << maxSize << " to " << newSize << std::endl;
+    std::cerr << "Resizing hashmap from " << maxSize << " to " << newSize << std::endl;
     HashMap<keyT, valueT>::MapEntry * oldTable = table;
     int oldSize = maxSize;
     currentSize = 0;

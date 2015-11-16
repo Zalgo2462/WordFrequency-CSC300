@@ -6,12 +6,12 @@
 #include <iomanip>
 #include <cstring>
 #include <algorithm>
+#include <ctime>
 #include "tokenize.h"
 #include "hashmap.cpp"
 using namespace std;
 
-void printWrd(HashMap<string, int>::MapEntry * arr, int size, string name, int total);
-void printCsv(HashMap<string, int>::MapEntry * arr, int size, string name, int total);
+void printFiles(HashMap<string, int>::MapEntry * arr, int size, string f1, string f2, int total);
 int moveNulls(HashMap<string, int>::MapEntry * arr, int size);
 int qsorter(const void * a, const void * b);
 unsigned int stringHash(string s);
@@ -31,16 +31,16 @@ int main(int argc, char ** argv)
         cerr << "ERROR: Could not open " << argv[1] << endl;
         exit(1);
     }
-
+    clock_t time = clock();
     //create hashmap initial size 1000
     //constructor auto increases the value to a prime number
     HashMap<string, int> map( 1000, "", stringHash );
-    string in, fileName = argv[1];
+    string in, fileName = argv[1], wrd, csv;
     vector<string> token;
     int totalWords = 0, shrink = 0;
     HashMap<string, int>::MapEntry *arr;
     
-    
+    cout << "Creating Hashmap of size 1009." << endl; 
     while ( getline( file, in ) )
     {
         tokenize( in, token, VALID );
@@ -82,13 +82,15 @@ int main(int argc, char ** argv)
     qsort( arr, shrink, sizeof(HashMap<string, int>::MapEntry), qsorter);
     cout << " ... Done." << endl;
 
-    fileName.replace(fileName.end()-3, fileName.end(), "wrd" );
-    printWrd( arr, shrink, fileName, totalWords );
-    fileName.replace(fileName.end()-3, fileName.end(), "csv" );
-    printCsv( arr, shrink, fileName, totalWords );
+    wrd = fileName.replace(fileName.end()-3, fileName.end(), "wrd" );
+    csv = fileName.replace(fileName.end()-3, fileName.end(), "csv" );
+    printFiles( arr, shrink, wrd, csv, totalWords );
 
-    //possibly use <chronos> for clocking?
     file.close();
+    time = clock() - time;
+    cout.precision(1);
+    cout << fixed << "Runtime: " << double(time)/CLOCKS_PER_SEC * 1000 << " msec" << endl;
+        
     return 0;
 }
 
@@ -106,31 +108,50 @@ unsigned int stringHash(string s)
     return h;
 }
 
-void printWrd(HashMap<string, int>::MapEntry * arr, int size, string name, int total)
+void printFiles(HashMap<string, int>::MapEntry * arr, int size, string f1, string f2, int total)
 {
-    ofstream file(name);
+    ofstream wrd(f1);
+    ofstream csv(f2);
     int i = 0, j, t, x, start, end, num;
     float avg = 0.0;
-    if( !file )
+    if( !wrd )
     {
         cout << "Error writing .wrd file" << endl;
         exit (1);
     }
-    name.replace(name.end()-3, name.end(), "txt" );
+    if( !csv )
+    {
+        cout << "Error writing .csv file" << endl;
+        exit (1);
+    }
     
-    file << "\nZipf's Law"<< endl
+    f1.replace(f1.end()-3, f1.end(), "txt" );
+    
+    wrd << "\nZipf's Law"<< endl
          << "----------" << endl
-         << "File: " << name << endl
+         << "File: " << f1 << endl
          << "Total Words: " << total << endl
          << "Total Unique Words: " << size << endl << endl
          << "Word Frequencies" << setw(20) << "Ranks" << setw(10) << "Avg Rank" << endl
          << "----------------" << setw(20) << "-----" << setw(10) << "--------";
-         
-    file.precision(1);
-    file<<fixed;
-    while ( arr[i].value != 0 )
+             
+    
+    csv << "\n    Zipf's Law"<< endl
+         << "    ----------" << endl
+         << "    File: " << f1 << endl
+         << "    Total Words: " << total << endl
+         << "    Total Unique Words: " << size << endl << endl
+         << "    Rank    Freq    Rank*Freq" << endl
+         << "    ----    ----    ---------";
+
+    wrd.precision(1);
+    wrd << fixed;
+    csv.precision(1);
+    csv << fixed;
+while ( arr[i].value != 0 )
    {
-        file << endl << endl << endl;
+        wrd << endl << endl << endl;
+        csv << endl;
         x = arr[i].value;
         j = 0;
         do
@@ -141,80 +162,52 @@ void printWrd(HashMap<string, int>::MapEntry * arr, int size, string name, int t
         i = i - j;
         start = i + 1;
         end = start + j - 1;
+        
+        num = start;
+        while( end - num > 0 )
+        {
+            start = i + 1 + (start + end - num );
+            num++;
+        }
+        num = start;
+        start = i + 1;
+        avg = float(num) / ( end - start + 1 );
+        
+        csv << "    " << avg << ",    " << x << ",    " << avg*x;
         if( x != 1 )
         {
             if( start == end )  //only show start position for rank
-                file << "Words occurring "<< x << " times:"<< setw(8) << start << setw(10) << start << ".0";
-            else
-            {
-                num = start;
-                while( end - num > 0 )
-                {
-                    start = i + 1 + (start + end - num );
-                    num++;
-                }
-                num = start;
-                start = i + 1;
-                avg = float(num) / ( end - start + 1 );
-                        // start position -> end position for rank
-                file << "Words occurring "<< x << " times:" << setw(8) << start << '-' << end << setw(10) << avg;
-            }
+                wrd << "Words occurring "<< x << " times:"<< setw(8) << start << setw(10) << avg;
+            else        // start position -> end position for rank
+                wrd << "Words occurring "<< x << " times:" << setw(8) << start << '-' << end << setw(10) << avg;
         }
         if( x == 1 )
         {
             if( start == end )
-                file << "Words occurring once:" << setw(8) << start << setw(10) << start << ".0";
+                wrd << "Words occurring once:" << setw(8) << start << setw(10) << avg;
             else
-            {
-                num = start;
-                while( end - num > 0 )
-                {
-                    start = i + 1 + (start + end - num );
-                    num++;
-                }
-                num = start;
-                start = i + 1;
-                avg = float(num) / ( end - start + 1 );
-                file << "Words occurring once:" << setw(8) << start << '-' << end << setw(10) << avg;
-            }
+                wrd << "Words occurring once:" << setw(8) << start << '-' << end << setw(10) << avg;
         }
         t = 0;
-        file << endl << setfill('-') << setw(60) << "" << endl;
+        wrd << endl << setfill('-') << setw(60) << "" << endl;
         j = j + (i - 1);
         while( i <= j )
-        {   // 7 spaces between words for more readability
-            file << arr[i].key << setw( 19 - arr[i].key.size() ) << setfill(' ') << ' '; 
+        {   // 20 spaces between words for more readability
+            wrd << arr[i].key << setw( 19 - arr[i].key.size() ) << setfill(' ') << ' '; 
             t++;
             // 4 words per line so long as there are more words to output
             if( t % 4 == 0 && i != j )
-                file << endl << setw(0);
+                wrd << endl << setw(0);
             i++;
         }
         j = j - (i - 1);
         i = i + j;
     }
-    file.close();
+    wrd.close();
+    csv.close(); 
 }
 
 
-void printCsv(HashMap<string, int>::MapEntry * arr, int size, string name, int total)
-{
-    ofstream file(name);
-    int i = 0;
-    
-    if( !file )
-    {
-        cout << "Error writing .csv file" << endl;
-        exit (1);
-    }
-
-    while ( arr[i].value != 0 )
-    {
-        //cout << arr[i].value << "\tarr[" << i << ']' << "\t" << arr[i].key << endl;
-        i++;
-    }
-    file.close();
-}
 
 int moveNulls(HashMap<string, int>::MapEntry * arr, int size)
 {
