@@ -215,7 +215,13 @@ bool HashMap<keyT, valueT>::contains ( keyT key ) const
 
     int i = 0;
     int index = ( h + probeSequence ( i ) ) % maxSize;
-
+    //
+    //
+    //
+    //if we just remove this output comment can the loop be deleted?
+    //
+    //
+    //
     for ( ;
             table[index].key != key && table[index].key != empty;
             index = ( h + probeSequence ( ++i ) ) % maxSize )
@@ -230,7 +236,6 @@ bool HashMap<keyT, valueT>::contains ( keyT key ) const
     {
         return false;
     }
-    //std::cerr << "Found " << key << " at: " << index << std::endl;
     return true;
 }
 

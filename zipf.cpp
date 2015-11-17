@@ -14,7 +14,7 @@ using namespace std;
 
 //Author: Brady Shimp
 //Prints the corresponding .wrd and .csv files
-//arr is a shrank array of hash table entries, size is the number of unique words
+//arr is a shrunken array of hash table entries, size is the number of unique words
 //f0 is the name of the input file,
 //f1 is the name for the wrd file,
 //f2 is the name for the csv file
@@ -29,7 +29,7 @@ int moveNulls ( HashMap<string, int>::MapEntry * arr, int size );
 //Sorts the shrank array of hashtable entries in descending order by frequency and alphabetical order
 int qsorter ( const void * a, const void * b );
 
-//Author: Logan Lembke /
+//Author: Logan Lembke
 //Original: http://www.isthe.com/chongo/tech/comp/fnv/#FNV-1a
 //Implements the FNV-1a hash function for strings
 unsigned int stringHash ( string s );
@@ -39,12 +39,13 @@ const char* VALID = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'";
 
 int main ( int argc, char ** argv )
 {
+    // error check command args
     if ( argc != 2 )
     {
         cerr << "Usage: ./zipf filename" << endl;
         exit ( 1 );
     }
-
+    //error check file name
     ifstream file ( argv[1], ios::in );
 
     if ( !file )
@@ -52,34 +53,37 @@ int main ( int argc, char ** argv )
         cerr << "ERROR: Could not open " << argv[1] << endl;
         exit ( 1 );
     }
-
+    //start clocking for program runtime
     clock_t time = clock();
 
     //create hashmap initial size 1000
     //constructor auto increases the value to a prime number
     HashMap<string, int> map ( 1000, "", stringHash );
-    string in, fileName = argv[1], wrd, csv;
-    vector<string> token;
+    string in, fileName = argv[1], wrd, csv;    //track file names and extensions
+    vector<string> token;       //vector to process input file line by line
     int totalWords = 0, shrink = 0;
 
     //Will hold our copy of the map entries
     HashMap<string, int>::MapEntry *arr;
 
     cout << "Creating Hashmap of size 1009." << endl;
+    //loop through file line by line
     while ( getline ( file, in ) )
     {
+        //take out punctuations and unwanted characters
         tokenize ( in, token, VALID );
         processTokens ( token );
-
+        
         for ( size_t i = 0; i < token.size(); i++ )
-        {
+        {   //if already in map, incriment count
             if ( map.contains ( token[i] ) )
                 map[token[i]] += 1;
+            //if not in map insert
             else
                 map.insert ( token[i], 1 );
-            totalWords += 1;
+            totalWords += 1;    //incriment total word count
         }
-
+        //clear out vector so it will be empty for next line
         token.clear();
         //insert function handles when near full and auto resizes
     }
@@ -109,13 +113,16 @@ int main ( int argc, char ** argv )
     //sort
     qsort ( arr, shrink, sizeof ( HashMap<string, int>::MapEntry ), qsorter );
     cout << " ... Done." << endl;
-
+    //assign proper file names and call function to output the file contents
     wrd = fileName.replace ( fileName.end() - 3, fileName.end(), "wrd" );
     csv = fileName.replace ( fileName.end() - 3, fileName.end(), "csv" );
     printFiles ( arr, shrink, fileName, wrd, csv, totalWords );
-
+    
+    //close input file
     file.close();
+    //end clocking for runtime
     time = clock() - time;
+    //decimal precision of 1
     cout.precision ( 1 );
     cout << fixed << "Runtime: " << double ( time ) / CLOCKS_PER_SEC * 1000 << " msec" << endl;
     delete[] arr;
@@ -156,7 +163,7 @@ void printFiles ( HashMap<string, int>::MapEntry * arr, int size, string f0, str
         cout << "Error writing .csv file" << endl;
         exit ( 1 );
     }
-
+    //wrd file header
     wrd << "\nZipf's Law" << endl
         << "----------" << endl
         << "File: " << f0 << endl
@@ -165,7 +172,7 @@ void printFiles ( HashMap<string, int>::MapEntry * arr, int size, string f0, str
         << "Word Frequencies" << setw ( 20 ) << "Ranks" << setw ( 10 ) << "Avg Rank" << endl
         << "----------------" << setw ( 20 ) << "-----" << setw ( 10 ) << "--------";
 
-
+    //csv file header
     csv << "\n    Zipf's Law" << endl
         << "    ----------" << endl
         << "    File: " << f0 << endl
@@ -173,17 +180,21 @@ void printFiles ( HashMap<string, int>::MapEntry * arr, int size, string f0, str
         << "    Total Unique Words: " << size << endl << endl
         << "    Rank    Freq    Rank*Freq" << endl
         << "    ----    ----    ---------";
-
+    //decimal output precisions set to 1
     wrd.precision ( 1 );
     wrd << fixed;
     csv.precision ( 1 );
     csv << fixed;
+    //while looping through valid table contents
     while ( arr[i].value != 0 )
     {
         wrd << endl << endl << endl;
         csv << endl;
+        //
         x = arr[i].value;
         j = 0;
+        //loop up to word with different count value
+        //count amount of words with same value
         do
         {
             i++;
@@ -197,10 +208,13 @@ void printFiles ( HashMap<string, int>::MapEntry * arr, int size, string f0, str
         num = start;
         while ( end - num > 0 )
         {
+            //i - 1 to preserve starting position
             start = i + 1 + ( start + end - num );
             num++;
         }
+        //num = values summed between start and end
         num = start;
+        //reset start value
         start = i + 1;
         avg = float ( num ) / ( end - start + 1 );
 
@@ -220,7 +234,9 @@ void printFiles ( HashMap<string, int>::MapEntry * arr, int size, string f0, str
                 wrd << "Words occurring once:" << setw ( 8 ) << start << '-' << end << setw ( 10 ) << avg;
         }
         t = 0;
+        //output line of -'s to format
         wrd << endl << setfill ( '-' ) << setw ( 60 ) << "" << endl;
+        //offset j so it is 'j' greater than 'i' in order to loop
         j = j + ( i - 1 );
         while ( i <= j )
         {
@@ -232,14 +248,15 @@ void printFiles ( HashMap<string, int>::MapEntry * arr, int size, string f0, str
                 wrd << endl << setw ( 0 );
             i++;
         }
+        //reset j
         j = j - ( i - 1 );
+        //incriment i by j (i position + number of words with same value)
         i = i + j;
     }
+    //close output files
     wrd.close();
     csv.close();
 }
-
-
 
 int moveNulls ( HashMap<string, int>::MapEntry * arr, int size )
 {
