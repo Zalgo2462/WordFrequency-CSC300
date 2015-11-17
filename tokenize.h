@@ -7,7 +7,7 @@ Authors: John Weiss Ph.D., Logan Lembke, Brady Shimp
 #include <vector>
 #include <iostream>
 
-void tokenize( const std::string& str, std::vector<std::string>& tokens, const std::string& valid = " " );
-void processTokens( std::vector<std::string> & tokens );
+void tokenize ( const std::string& str, std::vector<std::string>& tokens, const std::string& valid = " " );
+void processTokens ( std::vector<std::string> & tokens );
 
 #endif
