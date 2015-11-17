@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <iostream>
 
+//Author: Logan Lembke, Brady Shimp
+//Generic HashMap class
 template<typename keyT, typename valueT>
 class HashMap
 {
@@ -15,26 +17,28 @@ public:
         bool deleted;
     };
 private:
-    MapEntry * table;
-    int currentSize;
-    int maxSize;
-    keyT empty;
-    void resize(int newSize);
-    bool isPrime(int prime) const;
-    int getNextPrime(int start) const;
-    int inline probeSequence(int i) const;
-    unsigned int (*hash)(keyT key);
+    MapEntry * table; 	//Backing array for the table
+    int currentSize;	//Number of entries
+    int maxSize;	//Max capacity
+    keyT empty;		//Flag value for an empty entry
+    void resize(int newSize);	//Rehash to new table size
+    bool isPrime(int prime) const;	//For resizing
+    int getNextPrime(int start) const;	//For resizing
+    int inline probeSequence(int i) const;	//Controls linear vs quadratic probing
+    unsigned int (*hash)(keyT key);		//Function pointer to hash function for the key type
 
 public:
-    HashMap(int initCapacity, keyT emptyValue, unsigned int (* hasher) (keyT key));
+    //Constructor: initCapacity will be rounded to next prime,
+    //emptyValue is the flag value, hasher is a function pointer
+    HashMap(int initCapacity, keyT emptyValue, unsigned int (* hasher) (keyT key)); 
     HashMap(HashMap<keyT, valueT> & copy);
     ~HashMap();
 
-    valueT & operator[](keyT key) const;
-    void insert(keyT key, valueT value);
+    valueT & operator[](keyT key) const;	//Access operator by reference, can be used for reassignent
+    void insert(keyT key, valueT value);	
     bool remove(keyT key);
     bool contains(keyT key) const;
-    MapEntry * getEntries() const;
+    MapEntry * getEntries() const;		//Returns a pointer to the backing array
     int size() const;
     int capacity() const;
 };
@@ -140,11 +144,11 @@ valueT & HashMap<keyT, valueT>::operator[](keyT key) const
     }
     if (table[index].deleted)
     {
-    //    throw std::invalid_argument("Key has been deleted");
+        throw std::invalid_argument("Key has been deleted");
     }
     if (table[index].key == empty)
     {
-    //    throw std::invalid_argument("Key not found in hashmap");
+        throw std::invalid_argument("Key not found in hashmap");
     }
     //std::cerr << "Found " << key << " at: " << index << std::endl;
     return table[index].value;
