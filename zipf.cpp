@@ -37,6 +37,23 @@ unsigned int stringHash ( string s );
 //Used for parsing the words from the input file
 const char* VALID = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'";
 
+/* Author: Brady Shimp, Logan Lembke
+ Program starting point, command line arguments are checked for validity, if
+ an incorrect amount are given, a usage statement is displayed to the terminal.
+ If the input filename is given incorrectly, an error is displayed.  ctime is used
+ to measure the total runtime, getting times before the first instance of the hashmap
+ is created and after printing out file information.  The input file is processed line
+ by line with a vector of c++ strings that is passed into tokenizing functions to remove
+ any unwanted punctuation or symbols that would obscure the end result of the word counts.
+ The processed vector is then processed to see if each word it contains has been inserted
+ in the table yet or not. If it has, the frequency count of that word is incrimented,
+ otherwise, the word is inserted in the table and given a frequency count of 1. After 
+ processing each line, the vector is emptied before the next line is read.  After the entire
+ input file is read through, processed and inserted, statistics about the hash table are printed
+ and the data gets sorted by frequency and alphabetically within each frequency before being
+ output to a .wrd file that can be used to view all unique words within their frequency ranges
+ and a .csv file that can be ran through libre math and made into a graph that shows the 
+ logarithmic slope described by Zipf's law on word frequency and rank relations. */  
 int main ( int argc, char ** argv )
 {
     // error check command args
@@ -118,13 +135,16 @@ int main ( int argc, char ** argv )
     csv = fileName.replace ( fileName.end() - 3, fileName.end(), "csv" );
     printFiles ( arr, shrink, fileName, wrd, csv, totalWords );
     
-    //close input file
-    file.close();
     //end clocking for runtime
     time = clock() - time;
     //decimal precision of 1
     cout.precision ( 1 );
     cout << fixed << "Runtime: " << double ( time ) / CLOCKS_PER_SEC * 1000 << " msec" << endl;
+    
+    
+    //close input file
+    file.close();
+
     delete[] arr;
     return 0;
 }
